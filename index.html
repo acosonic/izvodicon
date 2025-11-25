@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="sr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,7 +24,7 @@
         /* Navigation */
         .navbar {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             z-index: 1000;
         }
 
@@ -70,7 +71,7 @@
         }
 
         .nav-link:hover {
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.1);
         }
 
         .nav-link.active {
@@ -105,7 +106,7 @@
         .page-header {
             background: white;
             padding: 20px 30px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
         }
 
         .page-header h2 {
@@ -153,8 +154,13 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         /* Welcome screen */
@@ -222,7 +228,7 @@
                 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                 flex-direction: column;
                 padding: 10px;
-                box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+                box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
             }
 
             .nav-menu.active {
@@ -235,7 +241,7 @@
             }
 
             .nav-link.active {
-                background: rgba(255,255,255,0.2);
+                background: rgba(255, 255, 255, 0.2);
                 color: white;
             }
 
@@ -264,12 +270,13 @@
         .badge {
             font-size: 0.7em;
             padding: 3px 8px;
-            background: rgba(255,255,255,0.3);
+            background: rgba(255, 255, 255, 0.3);
             border-radius: 10px;
             font-weight: 600;
         }
     </style>
 </head>
+
 <body>
     <!-- Navigation -->
     <nav class="navbar">
@@ -298,7 +305,7 @@
                         <span>XML Viewer</span>
                     </a>
                 </li>
-                <li class="nav-item">
+                <!--li class="nav-item">
                     <a class="nav-link" onclick="loadPage('demo', this)">
                         <span class="icon">🎬</span>
                         <span>Demo</span>
@@ -310,7 +317,7 @@
                         <span class="icon">📖</span>
                         <span>Dokumentacija</span>
                     </a>
-                </li>
+                </li-->
             </ul>
         </div>
     </nav>
@@ -321,14 +328,14 @@
             <h2 id="pageTitle">Dobrodošli</h2>
             <p id="pageDescription">Izaberite opciju iz menija</p>
         </div>
-        
+
         <div class="iframe-container" id="iframeContainer">
             <!-- Welcome screen -->
             <div class="welcome-screen" id="welcomeScreen">
                 <div class="welcome-content">
                     <h1>🏦 Bankovni Izvod Tools</h1>
                     <p>
-                        Konvertujte HTML bankovne izvode iz Erste Banke u strukturisani XML format 
+                        Konvertujte HTML bankovne izvode iz Erste Banke u strukturisani XML format
                         i pregledajte transakcije u modernom interfejsu.
                     </p>
                     <div class="quick-start">
@@ -347,13 +354,13 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Loading indicator -->
             <div class="loading" id="loadingIndicator" style="display: none;">
                 <div class="loading-spinner"></div>
                 <p>Učitavanje...</p>
             </div>
-            
+
             <!-- Iframe for pages -->
             <iframe id="contentFrame" style="display: none;"></iframe>
         </div>
@@ -423,9 +430,9 @@
                 iframe.style.display = 'none';
 
                 iframe.src = page.url;
-                
+
                 // Show iframe when loaded
-                iframe.onload = function() {
+                iframe.onload = function () {
                     loadingIndicator.style.display = 'none';
                     iframe.style.display = 'block';
                 };
@@ -437,14 +444,15 @@
         }
 
         // Close mobile menu when clicking outside
-        document.addEventListener('click', function(event) {
+        document.addEventListener('click', function (event) {
             const nav = document.getElementById('navMenu');
             const toggle = document.querySelector('.menu-toggle');
-            
+
             if (!nav.contains(event.target) && !toggle.contains(event.target)) {
                 nav.classList.remove('active');
             }
         });
     </script>
 </body>
+
 </html>
