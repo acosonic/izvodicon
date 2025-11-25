@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pregled Bankarskog Izvoda</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .account-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .info-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid #667eea;
+        }
+
+        .info-card h3 {
+            color: #667eea;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        .info-card p {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .info-card .currency {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .transactions-section {
+            padding: 30px;
+        }
+
+        .transactions-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85em;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        tbody tr {
+            transition: background-color 0.2s;
+        }
+
+        tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .debit {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .credit {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .amount {
+            text-align: right;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1em;
+        }
+
+        .date {
+            white-space: nowrap;
+            color: #666;
+        }
+
+        .purpose {
+            max-width: 300px;
+            font-size: 0.9em;
+            color: #555;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .status-80 {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .payee-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .file-upload {
+            padding: 30px;
+            text-align: center;
+            background: #f8f9fa;
+            border-top: 3px solid #667eea;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .account-info {
+                grid-template-columns: 1fr;
+            }
+
+            th, td {
+                padding: 10px 5px;
+                font-size: 0.85em;
+            }
+
+            .purpose {
+                max-width: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Pregled Bankarskog Izvoda</h1>
+            <p>iBank Payment Notification</p>
+        </div>
+
+        <div id="content">
+            <div class="account-info">
+                <div class="info-card">
+                    <h3>Broj Računa</h3>
+                    <p id="acctId">-</p>
+                </div>
+                <div class="info-card">
+                    <h3>Stanje na Računu</h3>
+                    <p id="ledgerBal">-</p>
+                    <span class="currency" id="currency"></span>
+                </div>
+                <div class="info-card">
+                    <h3>Raspoloživo Stanje</h3>
+                    <p id="availBal">-</p>
+                    <span class="currency" id="currency2"></span>
+                </div>
+                <div class="info-card">
+                    <h3>Trenutno Stanje</h3>
+                    <p id="instantBal">-</p>
+                    <span class="currency" id="currency3"></span>
+                </div>
+                <div class="info-card">
+                    <h3>Broj Izvoda</h3>
+                    <p id="stmtNumber">-</p>
+                </div>
+                <div class="info-card">
+                    <h3>Datum</h3>
+                    <p id="stmtDate">-</p>
+                </div>
+            </div>
+
+            <div class="transactions-section">
+                <h2>💳 Transakcije (<span id="trnCount">0</span>)</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Datum</th>
+                                <th>Primalac</th>
+                                <th>Svrha</th>
+                                <th>Referenca</th>
+                                <th>Iznos</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactionsTable">
+                            <tr>
+                                <td colspan="6" style="text-align: center; padding: 40px; color: #999;">
+                                    Učitajte XML fajl da vidite transakcije
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="file-upload">
+            <label for="fileInput" class="upload-btn">
+                📁 Učitaj novi XML fajl
+            </label>
+            <input type="file" id="fileInput" accept=".xml">
+        </div>
+    </div>
+
+    <script>
+        // Load the embedded XML data
+        const xmlData = `<pmtnotification>
+  <notificationtype>ibank.payment.notification.ledger</notificationtype>
+  <status>
+    <code>0</code>
+    <severity>INFO</severity>
+    <details />
+  </status>
+  <curdef>RSD</curdef>
+  <acctid>160-0000000275556-42</acctid>
+  <stmtnumber>68</stmtnumber>
+  <ledgerbal>
+    <balamt>11778.42</balamt>
+    <dtasof>2025-10-21T00:00:00</dtasof>
+  </ledgerbal>
+  <availbal>
+    <balamt>1476.06</balamt>
+    <dtasof>2025-10-21T00:00:00</dtasof>
+  </availbal>
+  <reservedfunds>0.00</reservedfunds>
+  <instantbal>
+    <balamt>1476.06</balamt>
+    <dtasof />
+  </instantbal>
+  <extension>
+    <headercomment />
+    <footercomment />
+    <headerdetails>
+      <intem order="" label="" value="" />
+    </headerdetails>
+  </extension>
+  <overdraftremaining />
+  <overdraftused />
+  <directdebitreserved />
+  <projectedavail />
+  <marketingmessage />
+  <overdraftinterest />
+  <period />
+  <feetotal>0.00</feetotal>
+  <noncashorders>0.00</noncashorders>
+  <income>0.00</income>
+  <outflow>0.00</outflow>
+  <accountfee>0.00</accountfee>
+  <feecomment>Oslobođeno poreza po članu 25. Zakona o PDV.</feecomment>
+  <overdraft>
+    <amount>0.00</amount>
+    <dtasof />
+    <dtasto />
+    <intrt />
+  </overdraft>
+  <trnlist count="5">
+    <stmttrn>
+      <trntype>ibank.payment.pp3</trntype>
+      <fitid>955PLBE2529403R7</fitid>
+      <trnuid />
+      <benefit>debit</benefit>
+      <payeeinfo>
+        <n>JKP INFORMATIKA Bulevar cara Lazara 3 No,-,Novi Sad</n>
+        <city />
+      </payeeinfo>
+      <payeeaccountinfo>
+        <acctid>200-2256150102934-15</acctid>
+        <bankid>200</bankid>
+        <bankname>Banka Poštanska štedionica ad Beograd</bankname>
+      </payeeaccountinfo>
+      <dtposted>2025-10-21T00:00:00</dtposted>
+      <trnamt>3121.94</trnamt>
+      <purpose>INFORMATIKA   Balzakova15   za  SEPT  2025. sa SKU, SKU i HIG su stavke koju osporavamo - Odluka i krite</purpose>
+      <purposecode>221</purposecode>
+      <curdef>RSD</curdef>
+      <payeerefnumber>90-2509-201903-766616</payeerefnumber>
+      <trnplace>999905 OfficeBanking</trnplace>
+      <dtuser>2025-10-21T00:00:00</dtuser>
+      <dtavail>2025-10-21T00:00:00</dtavail>
+      <refnumber />
+      <refmodel />
+      <payeerefmodel>97</payeerefmodel>
+      <urgency>INT</urgency>
+      <fee>0</fee>
+      <statusinfo>
+        <code>80</code>
+        <timeposted>2025-10-21T09:48:58</timeposted>
+      </statusinfo>
+    </stmttrn>
+    <stmttrn>
+      <trntype>ibank.payment.pp3</trntype>
+      <fitid>955PLBE2529403R6</fitid>
+      <trnuid />
+      <benefit>debit</benefit>
+      <payeeinfo>
+        <n>ELEKTROPRIVREDA SRBIJE  JP EPS  Beograd,-,-</n>
+        <city />
+      </payeeinfo>
+      <payeeaccountinfo>
+        <acctid>845-0000000484849-65</acctid>
+        <bankid>845</bankid>
+        <bankname>MFE - Racun za posebne namene</bankname>
+      </payeeaccountinfo>
+      <dtposted>2025-10-21T00:00:00</dtposted>
+      <trnamt>2408.24</trnamt>
+      <purpose>el. energ. Balzakova 15  za sept  2025.</purpose>
+      <purposecode>221</purposecode>
+      <curdef>RSD</curdef>
+      <payeerefnumber>31-4315318993-2509</payeerefnumber>
+      <trnplace>999905 OfficeBanking</trnplace>
+      <dtuser>2025-10-21T00:00:00</dtuser>
+      <dtavail>2025-10-21T00:00:00</dtavail>
+      <refnumber />
+      <refmodel />
+      <payeerefmodel>97</payeerefmodel>
+      <urgency>INT</urgency>
+      <fee>0</fee>
+      <statusinfo>
+        <code>80</code>
+        <timeposted>2025-10-21T09:48:57</timeposted>
+      </statusinfo>
+    </stmttrn>
+    <stmttrn>
+      <trntype>ibank.payment.pp3</trntype>
+      <fitid>955PLBE2529403R3</fitid>
+      <trnuid />
+      <benefit>debit</benefit>
+      <payeeinfo>
+        <n>EPS AD Beograd,Balkanska 13 Beograd,-</n>
+        <city />
+      </payeeinfo>
+      <payeeaccountinfo>
+        <acctid>200-0000000075406-08</acctid>
+        <bankid>200</bankid>
+        <bankname>Banka Poštanska štedionica ad Beograd</bankname>
+      </payeeaccountinfo>
+      <dtposted>2025-10-21T00:00:00</dtposted>
+      <trnamt>2313.35</trnamt>
+      <purpose>el. energ. Marka Oreškovica 1  za sept  2025.</purpose>
+      <purposecode>221</purposecode>
+      <curdef>RSD</curdef>
+      <payeerefnumber>23-02005245125-2509</payeerefnumber>
+      <trnplace>999905 OfficeBanking</trnplace>
+      <dtuser>2025-10-21T00:00:00</dtuser>
+      <dtavail>2025-10-21T00:00:00</dtavail>
+      <refnumber />
+      <refmodel />
+      <payeerefmodel>97</payeerefmodel>
+      <urgency>INT</urgency>
+      <fee>0</fee>
+      <statusinfo>
+        <code>80</code>
+        <timeposted>2025-10-21T09:48:55</timeposted>
+      </statusinfo>
+    </stmttrn>
+    <stmttrn>
+      <trntype>ibank.payment.pp3</trntype>
+      <fitid>955PLBE25294040F</fitid>
+      <trnuid />
+      <benefit>debit</benefit>
+      <payeeinfo>
+        <n>JKP NOVOSADSKA TOPLANA Vladimira Nikolic,-,Novi Sad</n>
+        <city />
+      </payeeinfo>
+      <payeeaccountinfo>
+        <acctid>105-0000000800199-85</acctid>
+        <bankid>105</bankid>
+        <bankname>AikBank ad BEOGRAD</bankname>
+      </payeeaccountinfo>
+      <dtposted>2025-10-21T00:00:00</dtposted>
+      <trnamt>1544.07</trnamt>
+      <purpose>Promet robe i usluga - SEPT  2025.</purpose>
+      <purposecode>221</purposecode>
+      <curdef>RSD</curdef>
+      <payeerefnumber>19-13616-020251068628</payeerefnumber>
+      <trnplace>999905 OfficeBanking</trnplace>
+      <dtuser>2025-10-21T00:00:00</dtuser>
+      <dtavail>2025-10-21T00:00:00</dtavail>
+      <refnumber />
+      <refmodel />
+      <payeerefmodel>97</payeerefmodel>
+      <urgency>INT</urgency>
+      <fee>0</fee>
+      <statusinfo>
+        <code>80</code>
+        <timeposted>2025-10-21T09:48:58</timeposted>
+      </statusinfo>
+    </stmttrn>
+    <stmttrn>
+      <trntype>ibank.payment.pp3</trntype>
+      <fitid>955PLBE25294040E</fitid>
+      <trnuid />
+      <benefit>debit</benefit>
+      <payeeinfo>
+        <n>JKP CISTOCA NOVI SAD Sentandrejski put 3 Novi Sad,Novi Sad,-</n>
+        <city />
+      </payeeinfo>
+      <payeeaccountinfo>
+        <acctid>200-2256070101001-72</acctid>
+        <bankid>200</bankid>
+        <bankname>Banka Poštanska štedionica ad Beograd</bankname>
+      </payeeaccountinfo>
+      <dtposted>2025-10-21T00:00:00</dtposted>
+      <trnamt>914.76</trnamt>
+      <purpose>Uplata po fakturi za  SEPT  2025.   br. 74888-201854-25</purpose>
+      <purposecode>221</purposecode>
+      <curdef>RSD</curdef>
+      <payeerefnumber>48-74888-201854-25</payeerefnumber>
+      <trnplace>999905 OfficeBanking</trnplace>
+      <dtuser>2025-10-21T00:00:00</dtuser>
+      <dtavail>2025-10-21T00:00:00</dtavail>
+      <refnumber />
+      <refmodel />
+      <payeerefmodel>97</payeerefmodel>
+      <urgency>INT</urgency>
+      <fee>0</fee>
+      <statusinfo>
+        <code>80</code>
+        <timeposted>2025-10-21T09:48:57</timeposted>
+      </statusinfo>
+    </stmttrn>
+  </trnlist>
+  <rejected count="0" />
+  <reservedfundstype>
+    <reserveditem>
+      <description />
+      <ordercount>0</ordercount>
+      <ordersum>0</ordersum>
+      <comment />
+    </reserveditem>
+  </reservedfundstype>
+</pmtnotification>`;
+
+        function parseXML(xmlString) {
+            const parser = new DOMParser();
+            return parser.parseFromString(xmlString, 'text/xml');
+        }
+
+        function formatAmount(amount, currency = 'RSD') {
+            const num = parseFloat(amount);
+            return new Intl.NumberFormat('sr-RS', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(num) + ' ' + currency;
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('sr-RS', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        }
+
+        function loadXMLData(xmlDoc) {
+            // Account information
+            const acctId = xmlDoc.querySelector('acctid')?.textContent || '-';
+            const currency = xmlDoc.querySelector('curdef')?.textContent || 'RSD';
+            const stmtNumber = xmlDoc.querySelector('stmtnumber')?.textContent || '-';
+            
+            const ledgerBal = xmlDoc.querySelector('ledgerbal balamt')?.textContent || '0';
+            const availBal = xmlDoc.querySelector('availbal balamt')?.textContent || '0';
+            const instantBal = xmlDoc.querySelector('instantbal balamt')?.textContent || '0';
+            const balDate = xmlDoc.querySelector('ledgerbal dtasof')?.textContent || '';
+
+            document.getElementById('acctId').textContent = acctId;
+            document.getElementById('stmtNumber').textContent = stmtNumber;
+            document.getElementById('stmtDate').textContent = formatDate(balDate);
+            
+            document.getElementById('ledgerBal').textContent = formatAmount(ledgerBal, currency);
+            document.getElementById('availBal').textContent = formatAmount(availBal, currency);
+            document.getElementById('instantBal').textContent = formatAmount(instantBal, currency);
+
+            // Transactions
+            const transactions = xmlDoc.querySelectorAll('stmttrn');
+            const tbody = document.getElementById('transactionsTable');
+            tbody.innerHTML = '';
+
+            document.getElementById('trnCount').textContent = transactions.length;
+
+            transactions.forEach((trn) => {
+                const row = document.createElement('tr');
+                
+                const dtPosted = trn.querySelector('dtposted')?.textContent || '';
+                const payeeName = trn.querySelector('payeeinfo n')?.textContent || '-';
+                const purpose = trn.querySelector('purpose')?.textContent || '-';
+                const refNumber = trn.querySelector('payeerefnumber')?.textContent || '-';
+                const amount = trn.querySelector('trnamt')?.textContent || '0';
+                const benefit = trn.querySelector('benefit')?.textContent || '';
+                const statusCode = trn.querySelector('statusinfo code')?.textContent || '';
+
+                const amountClass = benefit === 'debit' ? 'debit' : 'credit';
+                const amountPrefix = benefit === 'debit' ? '-' : '+';
+
+                row.innerHTML = `
+                    <td class="date">${formatDate(dtPosted)}</td>
+                    <td class="payee-name">${payeeName}</td>
+                    <td class="purpose">${purpose}</td>
+                    <td>${refNumber}</td>
+                    <td class="amount ${amountClass}">${amountPrefix} ${formatAmount(amount, currency)}</td>
+                    <td><span class="status-badge status-${statusCode}">${statusCode === '80' ? 'Izvršeno' : 'Status: ' + statusCode}</span></td>
+                `;
+
+                tbody.appendChild(row);
+            });
+        }
+
+        // Load initial data
+        document.addEventListener('DOMContentLoaded', () => {
+            const xmlDoc = parseXML(xmlData);
+            loadXMLData(xmlDoc);
+        });
+
+        // File upload handler
+        document.getElementById('fileInput').addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const xmlDoc = parseXML(e.target.result);
+                    loadXMLData(xmlDoc);
+                };
+                reader.readAsText(file);
+            }
+        });
+    </script>
+</body>
+</html>

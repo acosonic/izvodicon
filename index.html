@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bankovni Izvod - Konverter & Viewer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Navigation */
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        .logo {
+            color: white;
+            font-size: 1.5em;
+            font-weight: bold;
+            padding: 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            margin-left: auto;
+            gap: 5px;
+        }
+
+        .nav-item {
+            position: relative;
+        }
+
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            padding: 20px 25px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            cursor: pointer;
+            font-weight: 500;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .nav-link:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .nav-link.active {
+            background: white;
+            color: #667eea;
+        }
+
+        .nav-link .icon {
+            font-size: 1.2em;
+        }
+
+        /* Mobile menu toggle */
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5em;
+            cursor: pointer;
+            padding: 10px;
+            margin-left: auto;
+        }
+
+        /* Content area */
+        .content-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .page-header {
+            background: white;
+            padding: 20px 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .page-header h2 {
+            color: #333;
+            font-size: 1.8em;
+            margin-bottom: 5px;
+        }
+
+        .page-header p {
+            color: #666;
+            font-size: 1em;
+        }
+
+        .iframe-container {
+            flex: 1;
+            background: white;
+            overflow: hidden;
+            position: relative;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #667eea;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Welcome screen */
+        .welcome-screen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            text-align: center;
+            padding: 40px;
+        }
+
+        .welcome-content {
+            max-width: 600px;
+        }
+
+        .welcome-content h1 {
+            font-size: 3em;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .welcome-content p {
+            font-size: 1.2em;
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .quick-start {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .quick-start-btn {
+            padding: 15px 20px;
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        .quick-start-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+                position: absolute;
+                top: 65px;
+                left: 0;
+                right: 0;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                flex-direction: column;
+                padding: 10px;
+                box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+            }
+
+            .nav-menu.active {
+                display: flex;
+            }
+
+            .nav-link {
+                padding: 15px 20px;
+                border-radius: 8px;
+            }
+
+            .nav-link.active {
+                background: rgba(255,255,255,0.2);
+                color: white;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .page-header {
+                padding: 15px 20px;
+            }
+
+            .page-header h2 {
+                font-size: 1.4em;
+            }
+
+            .welcome-content h1 {
+                font-size: 2em;
+            }
+
+            .quick-start {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Badge */
+        .badge {
+            font-size: 0.7em;
+            padding: 3px 8px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 10px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <span>🏦</span>
+                <span>Bankovni Izvod Tools</span>
+            </div>
+            <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+            <ul class="nav-menu" id="navMenu">
+                <li class="nav-item">
+                    <a class="nav-link" onclick="loadPage('home', this)">
+                        <span class="icon">🏠</span>
+                        <span>Početna</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" onclick="loadPage('converter', this)">
+                        <span class="icon">🔄</span>
+                        <span>HTML Konverter</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" onclick="loadPage('viewer', this)">
+                        <span class="icon">📊</span>
+                        <span>XML Viewer</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" onclick="loadPage('demo', this)">
+                        <span class="icon">🎬</span>
+                        <span>Demo</span>
+                        <span class="badge">Primer</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" onclick="loadPage('docs', this)">
+                        <span class="icon">📖</span>
+                        <span>Dokumentacija</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Content area -->
+    <div class="content-wrapper">
+        <div class="page-header" id="pageHeader">
+            <h2 id="pageTitle">Dobrodošli</h2>
+            <p id="pageDescription">Izaberite opciju iz menija</p>
+        </div>
+        
+        <div class="iframe-container" id="iframeContainer">
+            <!-- Welcome screen -->
+            <div class="welcome-screen" id="welcomeScreen">
+                <div class="welcome-content">
+                    <h1>🏦 Bankovni Izvod Tools</h1>
+                    <p>
+                        Konvertujte HTML bankovne izvode iz Erste Banke u strukturisani XML format 
+                        i pregledajte transakcije u modernom interfejsu.
+                    </p>
+                    <div class="quick-start">
+                        <button class="quick-start-btn" onclick="loadPage('converter')">
+                            🔄 Konverter
+                        </button>
+                        <button class="quick-start-btn" onclick="loadPage('viewer')">
+                            📊 Viewer
+                        </button>
+                        <button class="quick-start-btn" onclick="loadPage('demo')">
+                            🎬 Demo
+                        </button>
+                        <button class="quick-start-btn" onclick="loadPage('docs')">
+                            📖 Uputstvo
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Loading indicator -->
+            <div class="loading" id="loadingIndicator" style="display: none;">
+                <div class="loading-spinner"></div>
+                <p>Učitavanje...</p>
+            </div>
+            
+            <!-- Iframe for pages -->
+            <iframe id="contentFrame" style="display: none;"></iframe>
+        </div>
+    </div>
+
+    <script>
+        const pages = {
+            home: {
+                title: 'Dobrodošli',
+                description: 'Izaberite opciju iz menija',
+                url: null
+            },
+            converter: {
+                title: 'HTML Konverter',
+                description: 'Konvertujte HTML bankovni izvod u XML format',
+                url: 'konverter.html'
+            },
+            viewer: {
+                title: 'XML Viewer',
+                description: 'Pregledajte XML bankovni izvod',
+                url: 'xml_viewer.html'
+            },
+            demo: {
+                title: 'Demo Viewer',
+                description: 'Primer prikaza bankovnog izvoda',
+                url: 'xml_viewer_demo.html'
+            },
+            docs: {
+                title: 'Dokumentacija',
+                description: 'Uputstvo za korišćenje',
+                url: 'docs.html'
+            }
+        };
+
+        function loadPage(pageId, linkElement) {
+            const page = pages[pageId];
+            if (!page) return;
+
+            // Update header
+            document.getElementById('pageTitle').textContent = page.title;
+            document.getElementById('pageDescription').textContent = page.description;
+
+            // Update active link
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            if (linkElement) {
+                linkElement.classList.add('active');
+            }
+
+            // Close mobile menu
+            document.getElementById('navMenu').classList.remove('active');
+
+            const welcomeScreen = document.getElementById('welcomeScreen');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const iframe = document.getElementById('contentFrame');
+
+            if (pageId === 'home') {
+                // Show welcome screen
+                welcomeScreen.style.display = 'flex';
+                iframe.style.display = 'none';
+                loadingIndicator.style.display = 'none';
+            } else {
+                // Load page in iframe
+                welcomeScreen.style.display = 'none';
+                loadingIndicator.style.display = 'block';
+                iframe.style.display = 'none';
+
+                iframe.src = page.url;
+                
+                // Show iframe when loaded
+                iframe.onload = function() {
+                    loadingIndicator.style.display = 'none';
+                    iframe.style.display = 'block';
+                };
+            }
+        }
+
+        function toggleMenu() {
+            document.getElementById('navMenu').classList.toggle('active');
+        }
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const nav = document.getElementById('navMenu');
+            const toggle = document.querySelector('.menu-toggle');
+            
+            if (!nav.contains(event.target) && !toggle.contains(event.target)) {
+                nav.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>
