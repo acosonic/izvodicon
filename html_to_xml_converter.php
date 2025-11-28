@@ -307,7 +307,42 @@ class BankStatementConverter {
             return null;
         }
         
+        // Pokušaj da izvučeš primaoca iz opisa ako opis sadrži datum (Erste Bank format)
+        if (!empty($transaction['description']) && preg_match('/\d{2}-\d{2}-\d{4}/', $transaction['description'])) {
+            $this->extractRecipientFromDescription($transaction);
+        }
+        
         return $transaction;
+    }
+    
+    /**
+     * Izvlači primaoca iz opisa transakcije (za Erste Bank kartične transakcije)
+     */
+    private function extractRecipientFromDescription(&$transaction) {
+        $description = $transaction['description'];
+        
+        // Pattern za Erste Bank kartične transakcije:
+        // "4322621*****0911 15-11-2025 TROJKA PECENJARA Novi Sad"
+        // Format: [broj kartice] [datum] [NAZIV PRIMAOCA] [grad]
+        
+        // Pokušaj da pronađeš naziv primaoca nakon datuma
+        // Pattern: datum (DD-MM-YYYY) + razmak + tekst do kraja ili do adrese (koja počinje sa slovom+brojevi)
+        if (preg_match('/\d{2}-\d{2}-\d{4}\s+(.+?)(?:\s*E\d+|\s*Kartična|\s*$)/iu', $description, $matches)) {
+            $recipient = trim($matches[1]);
+            
+            if (!empty($recipient)) {
+                $transaction['recipient'] = $recipient;
+                $this->log("Izvučen primalac iz opisa: " . $recipient);
+            }
+        }
+        
+        // Pokušaj da pronađeš referencu (npr. "FT253207VDYB")
+        if (preg_match('/\b([A-Z]{2}\d{6,}[A-Z0-9]*)\b/', $description, $matches)) {
+            if (empty($transaction['reference'])) {
+                $transaction['reference'] = $matches[1];
+                $this->log("Izvučena referenca iz opisa: " . $matches[1]);
+            }
+        }
     }
     
     /**

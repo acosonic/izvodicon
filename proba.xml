@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pmtnotification>
+  <notificationtype>ibank.payment.notification.ledger</notificationtype>
+  <status>
+    <code>0</code>
+    <severity>INFO</severity>
+    <details/>
+  </status>
+  <curdef>RSD</curdef>
+  <acctid>340000001141393304</acctid>
+  <stmtnumber>1</stmtnumber>
+  <ledgerbal>
+    <balamt>754823.78</balamt>
+    <dtasof>2025-11-17T00:00:00</dtasof>
+  </ledgerbal>
+  <availbal>
+    <balamt>754823.78</balamt>
+    <dtasof>2025-11-17T00:00:00</dtasof>
+  </availbal>
+  <reservedfunds>0.00</reservedfunds>
+  <instantbal>
+    <balamt>754823.78</balamt>
+    <dtasof/>
+  </instantbal>
+  <extension>
+    <headercomment/>
+    <footercomment/>
+    <headerdetails>
+      <intem order="" label="" value=""/>
+    </headerdetails>
+  </extension>
+  <overdraftremaining/>
+  <overdraftused/>
+  <directdebitreserved/>
+  <projectedavail/>
+  <marketingmessage/>
+  <overdraftinterest/>
+  <period/>
+  <feetotal>0.00</feetotal>
+  <noncashorders>0.00</noncashorders>
+  <income>0.00</income>
+  <outflow>4260.00</outflow>
+  <accountfee>0.00</accountfee>
+  <feecomment>Oslobođeno poreza po članu 25. Zakona o PDV.</feecomment>
+  <overdraft>
+    <amount>0.00</amount>
+    <dtasof/>
+    <dtasto/>
+    <intrt/>
+  </overdraft>
+  <trnlist count="1">
+    <stmttrn>
+      <trntype>ibank.payment.pp3</trntype>
+      <fitid/>
+      <trnuid/>
+      <benefit>debit</benefit>
+      <payeeinfo>
+        <name>TROJKA PECENJARA Novi Sad</name>
+        <city/>
+      </payeeinfo>
+      <payeeaccountinfo>
+        <acctid/>
+        <bankid/>
+        <bankname>TROJKA PECENJARA Novi Sad</bankname>
+      </payeeaccountinfo>
+      <dtposted>2025-11-16T00:00:00</dtposted>
+      <trnamt>4260.00</trnamt>
+      <purpose>   4322621*****0911 15-11-2025 TROJKA PECENJARA Novi SadE4301026 DRINSKA 2 NOVI SADKartična transakcija</purpose>
+      <purposecode>221</purposecode>
+      <curdef>RSD</curdef>
+      <payeerefnumber/>
+      <trnplace>999905 OfficeBanking</trnplace>
+      <dtuser>2025-11-16T00:00:00</dtuser>
+      <dtavail>2025-11-16T00:00:00</dtavail>
+      <refnumber/>
+      <refmodel/>
+      <payeerefmodel>97</payeerefmodel>
+      <urgency>INT</urgency>
+      <fee>0</fee>
+      <statusinfo>
+        <code>80</code>
+        <timeposted>2025-11-16T09:48:58</timeposted>
+      </statusinfo>
+    </stmttrn>
+  </trnlist>
+  <rejected count="0"/>
+  <reservedfundstype>
+    <reserveditem>
+      <description/>
+      <ordercount>0</ordercount>
+      <ordersum>0</ordersum>
+      <comment/>
+    </reserveditem>
+  </reservedfundstype>
+</pmtnotification>
