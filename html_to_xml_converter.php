@@ -450,8 +450,8 @@ class BankStatementConverter {
             // Payee info
             $payeeinfo = $xml->createElement('payeeinfo');
             $stmttrn->appendChild($payeeinfo);
-            $n = $xml->createElement('n', htmlspecialchars($trn['recipient']));
-            $payeeinfo->appendChild($n);
+            $name = $xml->createElement('name', htmlspecialchars($trn['recipient']));
+            $payeeinfo->appendChild($name);
             $city = $xml->createElement('city');
             $payeeinfo->appendChild($city);
             
