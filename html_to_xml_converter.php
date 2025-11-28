@@ -12,15 +12,29 @@ class BankStatementConverter {
     private $html;
     private $dom;
     private $xpath;
+    private $debug = false;
+    private $debugLog = [];
     
-    public function __construct($htmlFile) {
+    public function __construct($htmlFile, $debug = false) {
         $this->html = file_get_contents($htmlFile);
         $this->dom = new DOMDocument();
+        $this->debug = $debug;
         // Suppress HTML parsing warnings
         libxml_use_internal_errors(true);
         $this->dom->loadHTML($this->html);
         libxml_clear_errors();
         $this->xpath = new DOMXPath($this->dom);
+    }
+    
+    private function log($message) {
+        if ($this->debug) {
+            $this->debugLog[] = $message;
+            error_log("[BankConverter] " . $message);
+        }
+    }
+    
+    public function getDebugLog() {
+        return $this->debugLog;
     }
     
     /**
@@ -115,7 +129,9 @@ class BankStatementConverter {
         $rows = $this->xpath->query("//tr");
         $inTransactionTable = false;
         
-        foreach ($rows as $row) {
+        $this->log("Ukupno pronađeno redova (tr): " . $rows->length);
+        
+        foreach ($rows as $rowIndex => $row) {
             $cells = $this->xpath->query('.//td', $row);
             $rowText = '';
             foreach ($cells as $cell) {
@@ -129,6 +145,7 @@ class BankStatementConverter {
             if ((stripos($rowText, 'REDNI') !== false && stripos($rowText, 'BROJ') !== false) ||
                 (stripos($rowText, 'DATUM') !== false && stripos($rowText, 'PRIJEMA') !== false)) {
                 $inTransactionTable = true;
+                $this->log("Pronađen header tabele transakcija na redu " . $rowIndex);
                 continue;
             }
             
@@ -150,13 +167,20 @@ class BankStatementConverter {
                     $cellData[] = trim($cellText);
                 }
                 
+                $this->log("Procesiranje reda " . $rowIndex . " sa " . count($cellData) . " ćelija");
+                
                 // Pokušaj da pronađeš transakciju u ovom redu
                 $transaction = $this->parseTransactionRow($cellData);
                 if ($transaction) {
                     $transactions[] = $transaction;
+                    $this->log("Transakcija uspešno parsirana: " . $transaction['recipient']);
+                } else {
+                    $this->log("Red " . $rowIndex . " nije prepoznat kao transakcija. Podaci: " . implode(" | ", array_slice($cellData, 0, 5)));
                 }
             }
         }
+        
+        $this->log("Ukupno pronađeno transakcija: " . count($transactions));
         
         return $transactions;
     }
@@ -228,13 +252,20 @@ class BankStatementConverter {
                 if (!empty($amount) && floatval($amount) > 0) {
                     // ISPRAVNA LOGIKA - koristi poziciju ćelije za određivanje debit/credit
                     // U Erste bankovnom izvodu:
-                    // - Ćelija 8 = DUGUJE (debit - troškovi)
-                    // - Ćelija 9 = POTRAŽUJE (credit - prihodi)
+                    // - Ćelija 6 ili 8 = DUGUJE (debit - troškovi)
+                    // - Ćelija 7 ili 9 = POTRAŽUJE (credit - prihodi)
                     
                     if ($totalCells == 11) {
                         if ($i == 8) {
                             $transaction['debit'] = $amount;
                         } elseif ($i == 9) {
+                            $transaction['credit'] = $amount;
+                        }
+                    } elseif ($totalCells == 8) {
+                        // Za 8 kolona (test format)
+                        if ($i == 6) {
+                            $transaction['debit'] = $amount;
+                        } elseif ($i == 7) {
                             $transaction['credit'] = $amount;
                         }
                     } else {
@@ -250,7 +281,16 @@ class BankStatementConverter {
                 continue;
             }
             
-            // Ako sadrži slova i nije datum - opis, primalac ili referenca
+            // Proveri da li je referenca (format: 97-12345-67890 ili slično)
+            if (preg_match('/^\d{2}-[\d-]+$/', $value)) {
+                if (!$foundReference) {
+                    $transaction['reference'] = $value;
+                    $foundReference = true;
+                }
+                continue;
+            }
+            
+            // Ako sadrži slova i nije datum - opis ili primalac
             if (preg_match('/[A-Za-zА-Яа-яĐđŠšČčĆćŽž]/', $value)) {
                 if (!$foundDescription) {
                     $transaction['description'] = $value;
@@ -258,9 +298,6 @@ class BankStatementConverter {
                 } elseif (!$foundRecipient) {
                     $transaction['recipient'] = $value;
                     $foundRecipient = true;
-                } elseif (!$foundReference && strlen($value) < 50) {
-                    $transaction['reference'] = $value;
-                    $foundReference = true;
                 }
             }
         }
