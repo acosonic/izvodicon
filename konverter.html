@@ -1,0 +1,654 @@
+
+<!DOCTYPE html>
+<html lang="sr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML to XML Konvertor - Bankovni Izvodi</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            background: #f8f9ff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #f0f1ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #764ba2;
+            background: #e8e9ff;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 60px;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .upload-subtext {
+            color: #666;
+            font-size: 14px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-info {
+            background: #f8f9ff;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .file-info.show {
+            display: block;
+        }
+
+        .file-name {
+            color: #333;
+            font-weight: 500;
+            margin-bottom: 5px;
+            word-break: break-all;
+        }
+
+        .file-size {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+            margin-top: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #d0d0d0;
+        }
+
+        .progress-container {
+            display: none;
+            margin: 20px 0;
+        }
+
+        .progress-container.show {
+            display: block;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .status-message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            display: none;
+            text-align: center;
+        }
+
+        .status-message.show {
+            display: block;
+        }
+
+        .status-message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .features {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .feature-icon {
+            font-size: 24px;
+            margin-right: 15px;
+            color: #667eea;
+        }
+
+        .feature-text {
+            color: #666;
+            font-size: 14px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, .3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        .files-list {
+            margin: 20px 0;
+            display: none;
+        }
+
+        .files-list.show {
+            display: block;
+        }
+
+        .file-item {
+            background: #f8f9ff;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .file-item.processing {
+            border-color: #667eea;
+            background: #e8e9ff;
+        }
+
+        .file-item.completed {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+
+        .file-item.error {
+            border-color: #dc3545;
+            background: #f8d7da;
+        }
+
+        .file-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .file-item-name {
+            font-weight: 500;
+            color: #333;
+            flex: 1;
+            word-break: break-all;
+            margin-right: 10px;
+        }
+
+        .file-item-status {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 5px;
+            white-space: nowrap;
+        }
+
+        .file-item-status.waiting {
+            background: #e0e0e0;
+            color: #666;
+        }
+
+        .file-item-status.processing {
+            background: #667eea;
+            color: white;
+        }
+
+        .file-item-status.completed {
+            background: #28a745;
+            color: white;
+        }
+
+        .file-item-status.error {
+            background: #dc3545;
+            color: white;
+        }
+
+        .file-item-progress {
+            width: 100%;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .file-item-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .file-item.completed .file-item-progress-fill {
+            background: #28a745;
+        }
+
+        .file-item.error .file-item-progress-fill {
+            background: #dc3545;
+        }
+
+        .overall-progress {
+            margin: 20px 0;
+            display: none;
+        }
+
+        .overall-progress.show {
+            display: block;
+        }
+
+        .overall-progress-text {
+            text-align: center;
+            color: #666;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏦 HTML to XML Konvertor</h1>
+            <p>Konvertujte bankovne izvode iz HTML u XML format</p>
+        </div>
+
+        <form id="uploadForm" enctype="multipart/form-data">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📁</div>
+                <div class="upload-text">Prevucite HTML fajlove ovde</div>
+                <div class="upload-subtext">ili kliknite da odaberete više fajlova (max 10MB po fajlu)</div>
+                <input type="file" id="fileInput" name="html_file" accept=".html,.htm" multiple required>
+            </div>
+
+
+            <div class="overall-progress" id="overallProgress">
+                <div class="overall-progress-text" id="overallProgressText">Konvertujem fajlove...</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+
+            <div class="files-list" id="filesList"></div>
+
+            <button type="submit" class="btn btn-primary" id="convertBtn" disabled>
+                Konvertuj sve fajlove
+            </button>
+
+            <button type="button" class="btn btn-secondary" id="resetBtn" style="display: none;">
+                Odaberi nove fajlove
+            </button>
+        </form>
+
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">✅</div>
+                <div class="feature-text">Automatsko parsiranje transakcija</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🔒</div>
+                <div class="feature-text">Potpuno bezbedno - svi podaci ostaju na serveru</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">⚡</div>
+                <div class="feature-text">Brza konverzija - rezultat za par sekundi</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">💾</div>
+                <div class="feature-text">Batch obrada - konvertujte više fajlova odjednom</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const filesList = document.getElementById('filesList');
+        const convertBtn = document.getElementById('convertBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const uploadForm = document.getElementById('uploadForm');
+        const overallProgress = document.getElementById('overallProgress');
+        const overallProgressText = document.getElementById('overallProgressText');
+        const progressFill = document.getElementById('progressFill');
+
+        let selectedFiles = [];
+
+        // Click on upload area to open file dialog
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // Drag and drop functionality
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                handleFileSelect();
+            }
+        });
+
+        // File input change
+        fileInput.addEventListener('change', handleFileSelect);
+
+        function handleFileSelect() {
+            const files = Array.from(fileInput.files);
+
+            if (files.length === 0) return;
+
+            selectedFiles = [];
+            filesList.innerHTML = '';
+
+            let hasError = false;
+
+            files.forEach((file, index) => {
+                // Check file type
+                if (!file.name.match(/\.(html|htm)$/i)) {
+                    alert(`Fajl "${file.name}" nije HTML fajl!`);
+                    hasError = true;
+                    return;
+                }
+
+                // Check file size (max 10MB)
+                if (file.size > 10 * 1024 * 1024) {
+                    alert(`Fajl "${file.name}" je prevelik! Maksimalna veličina je 10MB.`);
+                    hasError = true;
+                    return;
+                }
+
+                selectedFiles.push({
+                    file: file,
+                    status: 'waiting',
+                    progress: 0
+                });
+
+                // Create file item element
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.id = `file-item-${index}`;
+                fileItem.innerHTML = `
+                    <div class="file-item-header">
+                        <div class="file-item-name">📄 ${file.name}</div>
+                        <div class="file-item-status waiting" id="status-${index}">Na čekanju</div>
+                    </div>
+                    <div class="file-item-progress">
+                        <div class="file-item-progress-fill" id="progress-${index}"></div>
+                    </div>
+                `;
+                filesList.appendChild(fileItem);
+            });
+
+            if (hasError) {
+                fileInput.value = '';
+                return;
+            }
+
+            if (selectedFiles.length > 0) {
+                filesList.classList.add('show');
+                convertBtn.disabled = false;
+                resetBtn.style.display = 'block';
+            }
+        }
+
+        // Reset button
+        resetBtn.addEventListener('click', () => {
+            fileInput.value = '';
+            selectedFiles = [];
+            filesList.innerHTML = '';
+            filesList.classList.remove('show');
+            convertBtn.disabled = true;
+            resetBtn.style.display = 'none';
+            overallProgress.classList.remove('show');
+            progressFill.style.width = '0%';
+        });
+
+        // Form submit - process files one by one
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            convertBtn.disabled = true;
+            convertBtn.innerHTML = '<span class="spinner"></span> Konvertujem...';
+            overallProgress.classList.add('show');
+
+            let completed = 0;
+            let failed = 0;
+
+            for (let i = 0; i < selectedFiles.length; i++) {
+                const fileData = selectedFiles[i];
+                const fileItem = document.getElementById(`file-item-${i}`);
+                const statusEl = document.getElementById(`status-${i}`);
+                const progressEl = document.getElementById(`progress-${i}`);
+
+                // Update status to processing
+                fileItem.classList.add('processing');
+                statusEl.className = 'file-item-status processing';
+                statusEl.textContent = 'Konvertujem...';
+                progressEl.style.width = '30%';
+
+                try {
+                    // Create form data for this file
+                    const formData = new FormData();
+                    formData.append('html_file', fileData.file);
+
+                    // Send to server
+                    const response = await fetch('/convert', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    progressEl.style.width = '70%';
+
+                    if (!response.ok) {
+                        throw new Error('Greška pri obradi fajla');
+                    }
+
+                    const contentType = response.headers.get('content-type');
+
+                    if (contentType && contentType.includes('application/json')) {
+                        // Error response
+                        const result = await response.json();
+                        throw new Error(result.error || 'Nepoznata greška');
+                    }
+
+                    // Success - download file
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = fileData.file.name.replace(/\.html?$/i, '.xml');
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+
+                    // Update to completed
+                    progressEl.style.width = '100%';
+                    fileItem.classList.remove('processing');
+                    fileItem.classList.add('completed');
+                    statusEl.className = 'file-item-status completed';
+                    statusEl.textContent = '✅ Gotovo';
+                    completed++;
+
+                } catch (error) {
+                    // Update to error
+                    progressEl.style.width = '100%';
+                    fileItem.classList.remove('processing');
+                    fileItem.classList.add('error');
+                    statusEl.className = 'file-item-status error';
+                    statusEl.textContent = `❌ ${error.message}`;
+                    failed++;
+                }
+
+                // Update overall progress
+                const totalProgress = ((i + 1) / selectedFiles.length) * 100;
+                progressFill.style.width = `${totalProgress}%`;
+                overallProgressText.textContent = `Konvertujem fajlove... (${i + 1}/${selectedFiles.length})`;
+
+                // Small delay between files
+                if (i < selectedFiles.length - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                }
+            }
+
+            // Final status
+            convertBtn.disabled = false;
+            convertBtn.textContent = 'Konvertuj sve fajlove';
+
+            if (failed === 0) {
+                overallProgressText.textContent = `✅ Svi fajlovi uspešno konvertovani! (${completed}/${selectedFiles.length})`;
+            } else if (completed === 0) {
+                overallProgressText.textContent = `❌ Konverzija nije uspela za nijedan fajl`;
+            } else {
+                overallProgressText.textContent = `⚠️ Konvertovano ${completed} od ${selectedFiles.length} fajlova`;
+            }
+
+            // Auto reset after 5 seconds
+            setTimeout(() => {
+                fileInput.value = '';
+                selectedFiles = [];
+                filesList.innerHTML = '';
+                filesList.classList.remove('show');
+                convertBtn.disabled = true;
+                resetBtn.style.display = 'none';
+                overallProgress.classList.remove('show');
+                progressFill.style.width = '0%';
+            }, 5000);
+        });
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+    </script>
+</body>
+
+
+</html>

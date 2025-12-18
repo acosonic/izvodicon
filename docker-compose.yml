@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: izvodi-converter
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+    environment:
+      - FLASK_APP=app.py
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
